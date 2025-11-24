@@ -1,1 +1,1 @@
-web: gunicorn graphiquad.wsgi
+web: sh -c "DJANGO_SETTINGS_MODULE=graphiquad.settings gunicorn graphiquad.wsgi --bind 0.0.0.0:$PORT"
