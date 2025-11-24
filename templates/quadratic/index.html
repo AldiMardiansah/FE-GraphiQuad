@@ -606,6 +606,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Error Modal instance
         const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 
         function showError(message) {
@@ -651,14 +652,17 @@
                 // Get form data
                 const formData = new FormData(this);
                 
+                // Tambahkan CSRF token ke FormData jika belum ada
+                if (!formData.has('csrfmiddlewaretoken')) {
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                }
+                
                 try {
-                    // Send request menggunakan FormData (bukan JSON)
+                    // Send request menggunakan FormData
                     const response = await fetch('{% url "quadratic:calculate" %}', { 
                         method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: formData  // Kirim sebagai FormData, bukan JSON
+                        body: formData  // Kirim sebagai FormData dengan CSRF token
                     });
 
                     if (!response.ok) {
