@@ -643,13 +643,19 @@
                 
                 try {
                     // Send request
-                    const response = await fetch('{% url "quadratic:calculate" %}', {
+                    const response = await fetch('{% url "quadratic:calculate" %}', { 
                         method: 'POST',
-                        body: formData,
                         headers: {
-                            'X-CSRFToken': getCSRFToken()
-                        }
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken') 
+                        },
+                        body: JSON.stringify({ expression: expression })
                     });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server Error: ${response.status} - ${errorText.substring(0, 50)}...`);
+                    }
                     
                     const data = await response.json();
                     
