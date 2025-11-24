@@ -1,0 +1,709 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphiQuad - Visualisasi Fungsi Kuadrat</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: white; /* Warna tombol agar terlihat di background biru */
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px; /* Jarak antara tombol dan header */
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #667eea;
+            background: white;
+            border-color: white;
+        }
+        
+        .header-section {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-section p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .nav-pills .nav-link {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 12px 24px;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-outline-secondary {
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        #graphImage {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alert-info {
+            border-left: 4px solid #0dcaf0;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        .spinner-border-custom {
+            width: 4rem;
+            height: 4rem;
+            border-width: 0.4rem;
+        }
+        
+        /* Accordion Styling */
+        .accordion-button {
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .formula-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .result-value {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .explanation {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header-section">
+            <h1><i class="bi bi-calculator"></i> GraphiQuad</h1>
+            <p>Website Visualisasi Fungsi Kuadrat Interaktif</p>
+        </div>
+        <div class="container mt-4">
+            <a href="{% url 'quadratic:landing' %}" class="back-btn">
+                <i class="bi bi-arrow-left me-2"></i> Kembali ke Beranda
+            </a>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4"><i class="bi bi-input-cursor"></i> Input Fungsi Kuadrat</h4>
+                
+                <!-- Tab Navigation -->
+                <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link active w-100" id="pills-y-tab" data-bs-toggle="pill" 
+                                data-bs-target="#pills-y" type="button" role="tab">
+                            <i class="bi bi-graph-up"></i> Mode Y (Standar)
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100" id="pills-x-tab" data-bs-toggle="pill" 
+                                data-bs-target="#pills-x" type="button" role="tab">
+                            <i class="bi bi-graph-down"></i> Mode X (Horizontal)
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100" id="pills-free-tab" data-bs-toggle="pill" 
+                                data-bs-target="#pills-free" type="button" role="tab">
+                            <i class="bi bi-pencil-square"></i> Free Text
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="pills-tabContent">
+                    
+                    <!-- Mode Y -->
+                    <div class="tab-pane fade show active" id="pills-y" role="tabpanel">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Mode Y:</strong> Masukkan koefisien untuk persamaan <strong>y = ax² + bx + c</strong>
+                        </div>
+                        
+                        <form id="formY" class="quadratic-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="mode" value="y">
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label for="y_a" class="form-label">Koefisien a</label>
+                                    <input type="number" class="form-control" id="y_a" name="a" 
+                                           step="0.1" value="1" required>
+                                    <small class="text-muted">a ≠ 0</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="y_b" class="form-label">Koefisien b</label>
+                                    <input type="number" class="form-control" id="y_b" name="b" 
+                                           step="0.1" value="-4" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="y_c" class="form-label">Koefisien c</label>
+                                    <input type="number" class="form-control" id="y_c" name="c" 
+                                           step="0.1" value="3" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="bi bi-play-fill"></i> Hitung & Visualisasi
+                            </button>
+                        </form>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <small class="text-muted w-100 mb-1"><strong>Contoh cepat:</strong></small>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('y', 1, -4, 3)">
+                                x² - 4x + 3
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('y', -1, 0, 4)">
+                                -x² + 4
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('y', 2, 4, 2)">
+                                2x² + 4x + 2
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode X -->
+                    <div class="tab-pane fade" id="pills-x" role="tabpanel">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Mode X:</strong> Masukkan koefisien untuk persamaan <strong>x = ay² + by + c</strong>
+                        </div>
+                        
+                        <form id="formX" class="quadratic-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="mode" value="x">
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label for="x_a" class="form-label">Koefisien a</label>
+                                    <input type="number" class="form-control" id="x_a" name="a" 
+                                           step="0.1" value="1" required>
+                                    <small class="text-muted">a ≠ 0</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="x_b" class="form-label">Koefisien b</label>
+                                    <input type="number" class="form-control" id="x_b" name="b" 
+                                           step="0.1" value="0" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="x_c" class="form-label">Koefisien c</label>
+                                    <input type="number" class="form-control" id="x_c" name="c" 
+                                           step="0.1" value="0" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="bi bi-play-fill"></i> Hitung & Visualisasi
+                            </button>
+                        </form>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <small class="text-muted w-100 mb-1"><strong>Contoh cepat:</strong></small>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('x', 1, 0, 0)">
+                                y²
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('x', -1, 2, 3)">
+                                -y² + 2y + 3
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setExample('x', 0.5, -2, 4)">
+                                0.5y² - 2y + 4
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Free Text -->
+                    <div class="tab-pane fade" id="pills-free" role="tabpanel">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Free Text:</strong> Tulis persamaan fungsi kuadrat dalam format bebas
+                        </div>
+                        
+                        <form id="formFree" class="quadratic-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="mode" value="freetext">
+                            
+                            <div class="mb-3">
+                                <label for="expression" class="form-label">Persamaan Fungsi Kuadrat</label>
+                                <input type="text" class="form-control form-control-lg" id="expression" 
+                                       name="expression" placeholder="Contoh: f(x) = x² - 4x + 3" required>
+                                <small class="text-muted">
+                                    Format: f(x)=..., y=..., x²-4x+3, atau -3(x+1)²+9
+                                </small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="bi bi-play-fill"></i> Hitung & Visualisasi
+                            </button>
+                        </form>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <small class="text-muted w-100 mb-1"><strong>Contoh format:</strong></small>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setFreetext('f(x) = x² - 4x + 3')">
+                                f(x) = x² - 4x + 3
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setFreetext('y = 5 - x²')">
+                                y = 5 - x²
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setFreetext('y = -3(x+1)² + 9')">
+                                y = -3(x+1)² + 9
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setFreetext('f(x) = 2x² - 10x + 12')">
+                                f(x) = 2x² - 10x + 12
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section: 2 Columns -->
+        <div class="row g-4" id="resultContainer" style="display: none;">
+            
+            <!-- Left Column: Graph -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-bar-chart-line"></i> Grafik Parabola</h5>
+                        <img id="graphImage" src="" alt="Grafik Fungsi Kuadrat">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Analysis with Accordion -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3"><i class="bi bi-clipboard-data"></i> Hasil Analisis</h5>
+                        
+                        <div class="accordion" id="analysisAccordion">
+                            
+                            <!-- Persamaan -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapsePersamaan">
+                                        <i class="bi bi-123 me-2"></i> Persamaan
+                                    </button>
+                                </h2>
+                                <div id="collapsePersamaan" class="accordion-collapse collapse show" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="persamaan">-</div>
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Ini adalah bentuk standar dari persamaan kuadrat yang Anda masukkan, 
+                                            dengan koefisien a, b, dan c yang sudah disusun rapi.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Arah Parabola -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseArah">
+                                        <i class="bi bi-arrow-up-circle me-2"></i> Arah Parabola
+                                    </button>
+                                </h2>
+                                <div id="collapseArah" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="arahParabola">-</div>
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Arah parabola ditentukan oleh nilai koefisien <strong>a</strong>:
+                                            <ul class="mt-2 mb-0">
+                                                <li>Jika <strong>a > 0</strong> (positif), parabola membuka ke atas ⬆️</li>
+                                                <li>Jika <strong>a < 0</strong> (negatif), parabola membuka ke bawah ⬇️</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Titik Puncak -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapsePuncak">
+                                        <i class="bi bi-bullseye me-2"></i> Titik Puncak
+                                    </button>
+                                </h2>
+                                <div id="collapsePuncak" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="titikPuncak">-</div>
+                                        
+                                        <div class="formula-box mt-3">
+                                            <strong>Rumus:</strong>
+                                            <div id="rumusPuncak" class="mt-2">-</div>
+                                        </div>
+                                        
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Titik puncak adalah titik tertinggi (untuk parabola ke bawah) 
+                                            atau terendah (untuk parabola ke atas) pada grafik. Koordinat x puncak dihitung dengan 
+                                            rumus <strong>x<sub>p</sub> = -b/(2a)</strong>, kemudian nilai y dihitung dengan memasukkan 
+                                            x<sub>p</sub> ke dalam persamaan.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sumbu Simetri -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseSumbu">
+                                        <i class="bi bi-symmetry-vertical me-2"></i> Sumbu Simetri
+                                    </button>
+                                </h2>
+                                <div id="collapseSumbu" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="sumbuSimetri">-</div>
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Sumbu simetri adalah garis vertikal yang membagi parabola 
+                                            menjadi dua bagian yang sama. Garis ini selalu melewati titik puncak parabola.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Titik Potong Sumbu Y -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapsePotongY">
+                                        <i class="bi bi-arrow-bar-up me-2"></i> Titik Potong Sumbu Y
+                                    </button>
+                                </h2>
+                                <div id="collapsePotongY" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="titikPotongY">-</div>
+                                        
+                                        <div class="formula-box mt-3">
+                                            <strong>Cara mencari:</strong>
+                                            <div id="rumusPotongY" class="mt-2">-</div>
+                                        </div>
+                                        
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Titik potong sumbu Y adalah titik dimana grafik memotong 
+                                            sumbu Y (vertical). Untuk mencarinya, substitusikan <strong>x = 0</strong> ke dalam persamaan. 
+                                            Hasilnya adalah nilai konstanta <strong>c</strong>.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Titik Potong Sumbu X -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapsePotongX">
+                                        <i class="bi bi-arrow-bar-right me-2"></i> Titik Potong Sumbu X
+                                    </button>
+                                </h2>
+                                <div id="collapsePotongX" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="titikPotongX">-</div>
+                                        
+                                        <div class="formula-box mt-3">
+                                            <strong>Cara mencari:</strong>
+                                            <div id="rumusPotongX" class="mt-2">-</div>
+                                        </div>
+                                        
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Titik potong sumbu X adalah titik dimana grafik memotong 
+                                            sumbu X (horizontal). Untuk mencarinya, gunakan rumus kuadrat <strong>x = (-b ± √D)/(2a)</strong> 
+                                            dimana D adalah diskriminan. Jumlah titik potong tergantung nilai diskriminan.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Diskriminan -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseDiskriminan">
+                                        <i class="bi bi-calculator-fill me-2"></i> Diskriminan (D)
+                                    </button>
+                                </h2>
+                                <div id="collapseDiskriminan" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <div class="result-value" id="discriminant">-</div>
+                                        
+                                        <div class="formula-box mt-3">
+                                            <strong>Rumus:</strong>
+                                            <div id="rumusDiskriminan" class="mt-2">-</div>
+                                        </div>
+                                        
+                                        <div class="explanation">
+                                            <strong>Penjelasan:</strong> Diskriminan menentukan jumlah dan jenis akar persamaan kuadrat:
+                                            <ul class="mt-2 mb-0">
+                                                <li><strong>D > 0:</strong> Ada 2 titik potong dengan sumbu X (2 akar real berbeda)</li>
+                                                <li><strong>D = 0:</strong> Ada 1 titik potong dengan sumbu X (1 akar real kembar)</li>
+                                                <li><strong>D < 0:</strong> Tidak ada titik potong dengan sumbu X (tidak ada akar real)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 GraphiQuad | Dibuat oleh Kelompok 10</p>
+        </footer>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Error
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="errorMessage">
+                    Terjadi kesalahan
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border text-light spinner-border-custom" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-white mt-3 fs-5">Menghitung dan membuat grafik...</p>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Error Modal instance
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            errorModal.show();
+        }
+
+        // Set example values
+        function setExample(mode, a, b, c) {
+            document.getElementById(`${mode}_a`).value = a;
+            document.getElementById(`${mode}_b`).value = b;
+            document.getElementById(`${mode}_c`).value = c;
+        }
+
+        function setFreetext(expr) {
+            document.getElementById('expression').value = expr;
+        }
+
+        // Get CSRF token
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Handle all forms
+        document.querySelectorAll('.quadratic-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                
+                // Get form data
+                const formData = new FormData(this);
+                
+                try {
+                    // Send request
+                    const response = await fetch('{% url "quadratic:calculate" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': getCSRFToken()
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update hasil
+                        document.getElementById('persamaan').textContent = data.persamaan;
+                        document.getElementById('arahParabola').textContent = data.arah_parabola;
+                        document.getElementById('titikPuncak').textContent = data.titik_puncak;
+                        document.getElementById('sumbuSimetri').textContent = data.sumbu_simetri;
+                        document.getElementById('discriminant').textContent = data.discriminant;
+                        document.getElementById('titikPotongY').textContent = data.titik_potong_y;
+                        document.getElementById('titikPotongX').textContent = data.titik_potong_x;
+                        
+                        // Update rumus
+                        if (data.rumus_puncak) {
+                            document.getElementById('rumusPuncak').innerHTML = 
+                                Object.values(data.rumus_puncak).join('<br>');
+                        }
+                        
+                        if (data.rumus_potong_y) {
+                            document.getElementById('rumusPotongY').textContent = data.rumus_potong_y;
+                        }
+                        
+                        if (data.rumus_potong_x) {
+                            document.getElementById('rumusPotongX').innerHTML = 
+                                data.rumus_potong_x.replace(/\n/g, '<br>');
+                        }
+                        
+                        if (data.rumus_diskriminan) {
+                            document.getElementById('rumusDiskriminan').textContent = data.rumus_diskriminan;
+                        }
+                        
+                        // Update grafik
+                        document.getElementById('graphImage').src = 'data:image/png;base64,' + data.grafik;
+                        
+                        // Show result container
+                        document.getElementById('resultContainer').style.display = 'flex';
+                        
+                        // Smooth scroll ke hasil
+                        document.getElementById('resultContainer').scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    } else {
+                        showError(data.error);
+                    }
+                } catch (error) {
+                    showError('Terjadi kesalahan: ' + error.message);
+                } finally {
+                    // Hide loading
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

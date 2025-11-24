@@ -1,0 +1,623 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphiQuad - Visualisasi Fungsi Kuadrat Interaktif</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            padding-top: 70px; /* Add padding for fixed navbar */
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: #4a5568 !important;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea !important;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: calc(100vh - 70px); /* Adjust for navbar */
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 60px 0;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            background-position: bottom;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        .hero-image {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+        }
+
+        .btn-get-started {
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: #764ba2;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .feature-description {
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .about-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 3rem;
+            color: white;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+        }
+
+        .about-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .about-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            opacity: 0.95;
+        }
+
+        /* Team Section */
+        .team-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            height: 100%; /* Make all cards same height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
+        }
+
+        .team-image {
+            width: 100%;
+            height: 250px; /* Reduced from 300px */
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .team-info {
+            padding: 1.5rem; /* Reduced padding */
+            flex-grow: 1; /* Make info section fill remaining space */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-name {
+            font-size: 1.2rem; /* Slightly reduced */
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .team-role {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.95rem; /* Slightly reduced */
+            margin-bottom: 1rem;
+        }
+
+        .team-description {
+            color: #718096;
+            font-size: 0.85rem; /* Slightly reduced */
+            line-height: 1.6;
+            flex-grow: 1; /* Push description to fill space */
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 3rem 0 1.5rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-text {
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 60px; /* Adjust for smaller navbar */
+            }
+
+            .hero-section {
+                min-height: auto;
+                padding: 40px 0;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .team-image {
+                height: 200px; /* Further reduced for mobile */
+            }
+
+            .team-info {
+                padding: 1.2rem;
+            }
+
+            .features-section,
+            .about-section,
+            .team-section {
+                padding: 60px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'quadratic:landing' %}">
+                <i class="bi bi-calculator"></i> GraphiQuad
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Fitur</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">Tentang</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#team">Tim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <h1 class="hero-title">Visualisasi Fungsi Kuadrat dengan Mudah</h1>
+                    <p class="hero-subtitle">
+                        GraphiQuad adalah aplikasi web interaktif yang membantu Anda memahami dan memvisualisasikan 
+                        fungsi kuadrat dengan cara yang intuitif dan menyenangkan.
+                    </p>
+                    <a href="{% url 'quadratic:index' %}" class="btn btn-get-started">
+                        <i class="bi bi-rocket-takeoff me-2"></i> Mulai Sekarang
+                    </a>
+                </div>
+                <div class="col-lg-6 hero-image">
+                    <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Graph Background -->
+                        <rect x="50" y="50" width="400" height="300" fill="white" rx="10" opacity="0.9"/>
+                        
+                        <!-- Grid Lines -->
+                        <line x1="50" y1="200" x2="450" y2="200" stroke="#cbd5e0" stroke-width="1"/>
+                        <line x1="250" y1="50" x2="250" y2="350" stroke="#cbd5e0" stroke-width="1"/>
+                        
+                        <!-- Parabola -->
+                        <path d="M 100 350 Q 250 80 400 350" fill="none" stroke="#667eea" stroke-width="4"/>
+                        
+                        <!-- Points -->
+                        <circle cx="250" cy="80" r="8" fill="#ef4444"/>
+                        <circle cx="250" cy="200" r="6" fill="#10b981"/>
+                        <circle cx="170" cy="200" r="6" fill="#f59e0b"/>
+                        <circle cx="330" cy="200" r="6" fill="#f59e0b"/>
+                        
+                        <!-- Axis Labels -->
+                        <text x="460" y="205" fill="#4a5568" font-size="20" font-weight="bold">x</text>
+                        <text x="255" y="40" fill="#4a5568" font-size="20" font-weight="bold">y</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <h2 class="section-title">Fitur Unggulan</h2>
+            <p class="section-subtitle">Berbagai fitur yang memudahkan pembelajaran fungsi kuadrat</p>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="feature-title">3 Mode Input</h3>
+                        <p class="feature-description">
+                            Mode Y standar, Mode X horizontal, dan Free Text untuk fleksibilitas maksimal
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-bar-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">Visualisasi Real-time</h3>
+                        <p class="feature-description">
+                            Lihat grafik parabola langsung dengan titik-titik penting yang jelas
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-calculator-fill"></i>
+                        </div>
+                        <h3 class="feature-title">Analisis Lengkap</h3>
+                        <p class="feature-description">
+                            Dapatkan titik puncak, sumbu simetri, diskriminan, dan titik potong otomatis
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3 class="feature-title">Penjelasan Detail</h3>
+                        <p class="feature-description">
+                            Setiap hasil disertai rumus dan penjelasan untuk membantu pemahaman
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="about-card">
+                        <h3><i class="bi bi-info-circle me-3"></i>Tentang GraphiQuad</h3>
+                        <p>
+                            GraphiQuad adalah sebuah aplikasi berbasis web yang dirancang untuk mengubah persamaan 
+                            fungsi kuadrat menjadi grafik secara otomatis. Pengguna cukup memasukkan bentuk fungsi kuadrat 
+                            (contoh: 3x² - 5x + 2), lalu GraphiQuad akan memproses persamaan tersebut dan menampilkan grafik 
+                            parabola lengkap dengan informasi penting seperti arah parabola, titik puncak, sumbu simetri, 
+                            titik potong sumbu x dan y, dan diskriminan.
+                        </p>
+                        <p class="mb-0">
+                            GraphiQuad dibuat untuk mempermudah siswa, guru, maupun pengguna umum dalam memahami konsep 
+                            fungsi kuadrat melalui visualisasi yang jelas, cepat, dan interaktif tanpa perlu perhitungan 
+                            manual.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section" id="team">
+        <div class="container">
+            <h2 class="section-title">Tim Pengembang</h2>
+            <p class="section-subtitle">Kenali tim di balik GraphiQuad - Kelompok 10</p>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card">
+                        <img src="{% static 'images/profile/aldi.jpg' %}" alt="Aldi" class="team-image"
+                            style="object-position: 40% center;">
+                        <div class="team-info">
+                            <h4 class="team-name">Aldi Mardiansah</h4>
+                            <p class="team-role">PM & Developer</p>
+                            <p class="team-description">
+                                Mengelola proyek serta memastikan semua fitur berjalan dengan baik dan
+                                Bertanggung jawab dalam pengembangan website.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card">
+                        <img src="{% static 'images/profile/vito.jpg' %}" alt="Vito" class="team-image">
+                        <div class="team-info">
+                            <h4 class="team-name">Janitra Alvito Zahir</h4>
+                            <p class="team-role">Research & Algorithm Developer</p>
+                            <p class="team-description">
+                                Mengembangkan website serta merancang algoritma matematika untuk 
+                                proses perhitungan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card">
+                        <img src="{% static 'images/profile/rizky.jpg' %}" alt="Rizky" class="team-image"
+                            style="object-position: center 20%;">
+                        <div class="team-info">
+                            <h4 class="team-name">Rizky Wicaksono</h4>
+                            <p class="team-role">Research & Algorithm Developer</p>
+                            <p class="team-description">
+                                Bertanggung jawab dalam penelitian dan implementasi algoritma serta 
+                                pengembangan aplikasi.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="team-card">
+                        <img src="{% static 'images/profile/salwa.jpg' %}" alt="Salwa" class="team-image">
+                        <div class="team-info">
+                            <h4 class="team-name">Salwa Nur Amelia</h4>
+                            <p class="team-role">Research & Algorithm Developer</p>
+                            <p class="team-description">
+                                Mengembangkan logika perhitungan dan memastikan algoritma matematika 
+                                berjalan dengan tepat.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <h3 class="footer-title">
+                    <i class="bi bi-calculator"></i> GraphiQuad
+                </h3>
+                <p class="footer-text">Visualisasi Fungsi Kuadrat Interaktif</p>
+                <p class="footer-text">© 2025 GraphiQuad | Dibuat oleh Kelompok 10</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Smooth scrolling untuk navigasi
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                    const targetPosition = target.offsetTop - navbarHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Navbar background change on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+            } else {
+                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+            }
+        });
+    </script>
+</body>
+</html>
