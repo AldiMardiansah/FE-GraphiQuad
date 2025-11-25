@@ -873,6 +873,16 @@
         
         let isEmailValid = false;
         
+        function showStatus(type, message) {
+            formStatus.className = `form-status ${type}`;
+            formStatus.textContent = message;
+            formStatus.style.display = 'block';
+            
+            setTimeout(() => {
+                formStatus.style.display = 'none';
+            }, 5000);
+        }
+        
         function closeSuccessModal() {
             successModal.classList.remove('show');
         }
@@ -914,7 +924,7 @@
             }, 500);
         });
         
-        // Form submission
+        // Form submission dengan client-side rate limiting
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -923,12 +933,29 @@
                 return;
             }
             
+            const email = emailInput.value.trim().toLowerCase();
+            const lastSentKey = `email_sent_${email}`;
+            const lastSentTime = localStorage.getItem(lastSentKey);
+            
+            if (lastSentTime) {
+                const currentTime = Date.now();
+                const timeDiff = currentTime - parseInt(lastSentTime);
+                const cooldownPeriod = 24 * 60 * 60 * 1000;
+                
+                if (timeDiff < cooldownPeriod) {
+                    const hoursRemaining = Math.floor((cooldownPeriod - timeDiff) / (60 * 60 * 1000));
+                    const minutesRemaining = Math.floor(((cooldownPeriod - timeDiff) % (60 * 60 * 1000)) / (60 * 1000));
+                    
+                    showStatus('error', `⏳ Anda sudah mengirim pesan. Silakan coba lagi dalam ${hoursRemaining} jam ${minutesRemaining} menit.`);
+                    return;
+                }
+            }
+            
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengirim...';
             formStatus.style.display = 'none';
             
             try {
-                // Check rate limit dan dapatkan credentials
                 const formData = {
                     user_name: document.getElementById('userName').value,
                     user_email: emailInput.value,
@@ -950,11 +977,7 @@
                 const rateLimitData = await rateLimitResponse.json();
                 
                 if (!rateLimitData.success) {
-                    if (rateLimitData.rate_limited) {
-                        showStatus('error', rateLimitData.error);
-                    } else {
-                        showStatus('error', rateLimitData.error);
-                    }
+                    showStatus('error', rateLimitData.error);
                     return;
                 }
                 
@@ -978,6 +1001,8 @@
                 
                 console.log('Email sent successfully!', emailResponse);
                 
+                localStorage.setItem(lastSentKey, Date.now().toString());
+                
                 successModal.classList.add('show');
                 form.reset();
                 emailValidation.textContent = '';
@@ -998,16 +1023,6 @@
                 submitBtn.innerHTML = '<i class="bi bi-send me-2"></i> Kirim Pesan';
             }
         });
-        
-        function showStatus(type, message) {
-            formStatus.className = `form-status ${type}`;
-            formStatus.textContent = message;
-            formStatus.style.display = 'block';
-            
-            setTimeout(() => {
-                formStatus.style.display = 'none';
-            }, 5000);
-        }
         
         // Smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

@@ -474,29 +474,8 @@ def send_contact_email(request):
         if not (user_email.endswith('@upi.edu') or user_email.endswith('@student.upi.edu')):
             return JsonResponse({
                 'success': False,
-                'error': 'Hanya email dengan domain UPI (@upi.edu atau @student.upi.edu) yang diperbolehkan'
+                'error': 'Hanya email dengan domain UPI yang diperbolehkan'
             }, status=400)
-        
-        email_hash = hashlib.sha256(user_email.encode()).hexdigest()
-        
-        cache_key = f'email_sent_{email_hash}'
-        current_time = int(time.time())
-        
-        # Simpan ke session untuk rate limiting
-        last_sent = request.session.get(cache_key)
-        
-        if last_sent:
-            time_diff = current_time - last_sent
-            if time_diff < 86400:
-                hours_remaining = (86400 - time_diff) // 3600
-                minutes_remaining = ((86400 - time_diff) % 3600) // 60
-                
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Anda sudah mengirim pesan. Silakan coba lagi dalam {hours_remaining} jam {minutes_remaining} menit.',
-                    'rate_limited': True,
-                    'retry_after': 86400 - time_diff
-                }, status=429)
         
         # Validasi credentials EmailJS tersedia
         if not all([settings.EMAILJS_PUBLIC_KEY, settings.EMAILJS_SERVICE_ID, settings.EMAILJS_TEMPLATE_ID]):
@@ -505,10 +484,7 @@ def send_contact_email(request):
                 'error': 'Konfigurasi email belum lengkap. Silakan hubungi administrator.'
             }, status=500)
         
-        # Set session untuk rate limiting
-        request.session[cache_key] = current_time
-        
-        # Return credentials
+        # Return credentials langsung tanpa rate limiting
         return JsonResponse({
             'success': True,
             'credentials': {
