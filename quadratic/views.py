@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 import math
 import io
 import base64
@@ -8,6 +10,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+from django.shortcuts import render
+from django.conf import settings
+import hashlib
+import time
+import json
 
 def landing_page(request):
     return render(request, 'quadratic/landing_page.html')
@@ -444,3 +451,81 @@ def format_equation(a, b, c, var='y'):
         result = f"x = {a_str}y²{b_str}{c_str}"
     
     return result.replace("  ", " ").strip()
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def send_contact_email(request):
+    try:
+        data = json.loads(request.body)
+        
+        user_email = data.get('user_email', '').strip().lower()
+        user_name = data.get('user_name', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        # Validasi input
+        if not all([user_email, user_name, subject, message]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Semua field harus diisi'
+            }, status=400)
+        
+        # Validasi email domain UPI
+        if not (user_email.endswith('@upi.edu') or user_email.endswith('@student.upi.edu')):
+            return JsonResponse({
+                'success': False,
+                'error': 'Hanya email dengan domain UPI (@upi.edu atau @student.upi.edu) yang diperbolehkan'
+            }, status=400)
+        
+        email_hash = hashlib.sha256(user_email.encode()).hexdigest()
+        
+        cache_key = f'email_sent_{email_hash}'
+        current_time = int(time.time())
+        
+        # Simpan ke session untuk rate limiting
+        last_sent = request.session.get(cache_key)
+        
+        if last_sent:
+            time_diff = current_time - last_sent
+            if time_diff < 86400:
+                hours_remaining = (86400 - time_diff) // 3600
+                minutes_remaining = ((86400 - time_diff) % 3600) // 60
+                
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Anda sudah mengirim pesan. Silakan coba lagi dalam {hours_remaining} jam {minutes_remaining} menit.',
+                    'rate_limited': True,
+                    'retry_after': 86400 - time_diff
+                }, status=429)
+        
+        # Validasi credentials EmailJS tersedia
+        if not all([settings.EMAILJS_PUBLIC_KEY, settings.EMAILJS_SERVICE_ID, settings.EMAILJS_TEMPLATE_ID]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Konfigurasi email belum lengkap. Silakan hubungi administrator.'
+            }, status=500)
+        
+        # Set session untuk rate limiting
+        request.session[cache_key] = current_time
+        
+        # Return credentials
+        return JsonResponse({
+            'success': True,
+            'credentials': {
+                'public_key': settings.EMAILJS_PUBLIC_KEY,
+                'service_id': settings.EMAILJS_SERVICE_ID,
+                'template_id': settings.EMAILJS_TEMPLATE_ID
+            },
+            'message': 'Silakan lanjutkan mengirim email'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Format data tidak valid'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Terjadi kesalahan: {str(e)}'
+        }, status=500)
